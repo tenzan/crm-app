@@ -26,31 +26,17 @@ model User {
   @@index([tenantId])
 }
 
-// Tenant model for multi-tenant functionality
+// Tenant model (represents customers/organizations)
 model Tenant {
   id             String    @id @default(cuid())
   name           String
-  slug           String    @unique
-  users          User[]
-  customers      Customer[]
+  slug           String    @unique // Used as tenant identifier in URLs
+  email          String    @unique // Primary contact email
+  phone          String?   // Contact phone number
+  address        String?   // Physical address
+  users          User[]    // Users belonging to this tenant
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-}
-
-// Customer model for customer data
-model Customer {
-  id             String    @id @default(cuid())
-  name           String
-  email          String
-  phone          String?
-  address        String?
-  tenantId       String
-  tenant         Tenant    @relation(fields: [tenantId], references: [id])
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  @@unique([email, tenantId])
-  @@index([tenantId])
 }
 
 // Magic link token model for authentication

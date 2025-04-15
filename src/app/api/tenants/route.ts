@@ -18,11 +18,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, slug, adminEmail } = await request.json();
+    const { name, slug, email, phone, address } = await request.json();
 
-    if (!name || !slug || !adminEmail) {
+    if (!name || !slug || !email) {
       return NextResponse.json(
-        { error: "Name, slug, and admin email are required" },
+        { error: "Name, slug, and email are required" },
         { status: 400 }
       );
     }
@@ -44,12 +44,15 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         slug,
+        email,
+        phone,
+        address,
       },
     });
 
-    // Check if admin user already exists
+    // Create or update the admin user
     const existingUser = await prisma.user.findUnique({
-      where: { email: adminEmail },
+      where: { email },
     });
 
     if (existingUser) {
@@ -57,6 +60,16 @@ export async function POST(request: NextRequest) {
       await prisma.user.update({
         where: { id: existingUser.id },
         data: {
+          role: "ADMIN",
+          tenantId: tenant.id,
+        },
+      });
+    } else {
+      // Create a new admin user
+      await prisma.user.create({
+        data: {
+          email,
+          name: `${name} Admin`,
           role: "ADMIN",
           tenantId: tenant.id,
         },
@@ -91,7 +104,6 @@ export async function GET(request: NextRequest) {
         _count: {
           select: {
             users: true,
-            customers: true,
           },
         },
       },
